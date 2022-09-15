@@ -1,12 +1,16 @@
-override CFLAGS += -Wall -Wextra -fsanitize=undefined -fsanitize-undefined-trap-on-error
-.PHONY: all clean
-#MAKEFLAGS := -r
-%: %.o
+BUILDDIR ?= build
+.PHONY: all clean install
+$(BUILDDIR)/%: $(BUILDDIR)/%.o
 	$(CC) -Wl,-z,relro,-z,now -fPIC -o $@ $^
-%.o: %.c Makefile
+$(BUILDDIR)/%.o: %.c Makefile $(BUILDDIR)/
 	$(CC) $(CFLAGS) -O2 -ggdb -MD -MP -MF $@.dep -c -o $@ $< -Wp,-D_FORTIFY_SOURCE=2 -fPIC \
-		-Werror=vla -Werror=array-bounds -Werror=format=2 -fstack-protector-all
-all: qubes-gpg-signer
+		-Werror=vla -Werror=array-bounds -Werror=format=2 -fstack-protector-all \
+		-Wall -Wextra -fsanitize=undefined -fsanitize-undefined-trap-on-error
+all: $(BUILDDIR)/qubes-gpg-signer
+$(BUILDDIR)/:
+	mkdir -p -m 0700 -- $(BUILDDIR)
 clean:
-	rm -f ./*.o ./qubes-gpg-signer ./*.dep
--include ./*.o.dep
+	rm -f -- $(BUILDDIR)/*.o $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/*.dep
+install:
+	install -D -- $(BUILDDIR)/qubes-gpg-signer ${DESTDIR}/etc/qubes-rpc/qubes-gpg-signer
+-include $(BUILDDIR)/*.o.dep
