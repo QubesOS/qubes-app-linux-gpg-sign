@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
     if (argc != 2)
         errx(16, "Wrong number of arguments (expected 2, got %d)", argc);
     char *untrusted_arg = argv[1];
+    /* sanitize start */
     size_t const arg_len = strlen(untrusted_arg);
     if (arg_len != ARGUMENT_LENGTH)
         errx(16, "Invalid length of service argument (expected %d, got %zu)",
@@ -31,11 +32,10 @@ int main(int argc, char **argv) {
                  untrusted_arg[i], i, untrusted_arg);
         }
     }
-    char buf[1], uid_arg[ARGUMENT_LENGTH + 2];
-    /* sanitization end */
+    char uid_arg[ARGUMENT_LENGTH + 2];
+    /* sanitize end */
     memcpy(uid_arg, untrusted_arg, arg_len);
-    uid_arg[arg_len] = '!';
-    uid_arg[arg_len + 1] = '\0';
+    memcpy(uid_arg + arg_len, "!", 2);
 
     char *args[] = {
         "gpg",
@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
         NULL,
     };
     for (;;) {
+        char buf[1];
         switch (read(0, buf, sizeof buf)) {
         case 0:
             errx(16, "No signature type selection byte (premature EOF)");
