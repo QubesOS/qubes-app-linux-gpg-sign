@@ -1,0 +1,13 @@
+#!/bin/sh --
+set -eu
+unset prefix
+if ! [ "$#" -eq 2 ]; then
+    echo "Must have 2 arguments, not $#" >&2
+    exit 1
+fi
+case $0 in
+(qubes-gpg-sign-armor|*/qubes-gpg-sign-armor) prefix=a;;
+(qubes-gpg-sign-binary|*/qubes-gpg-sign-binary) prefix=b;;
+(*) echo 'Invoked with unknown name, not sure if binary or text signature should be generated' >&2; exit 1;;
+esac
+exec qrexec-client-vm "--prefix-data=$prefix" -- "$1" "qubes.GpgSign+$2"
