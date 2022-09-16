@@ -14,5 +14,6 @@ $(BUILDDIR)/:
 clean:
 	rm -f -- $(BUILDDIR)/*.o $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/*.dep
 install:
-	install -D -- $(BUILDDIR)/qubes-gpg-signer ${DESTDIR}/etc/qubes-rpc/qubes-gpg-signer
+	install -D -- $(BUILDDIR)/qubes.GpgSign ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign
+	ln -f -- ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign ${DESTDIR}/etc/qubes-rpc/qubes.GpgClearSign
 -include $(BUILDDIR)/*.o.dep
