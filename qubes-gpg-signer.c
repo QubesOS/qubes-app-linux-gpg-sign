@@ -87,13 +87,15 @@ int main(int argc, char **argv) {
     }
     /* sanitize end */
 
+    /* Add a trailing ! to the key fingerprint.  This tells GnuPG to use the
+     * exact key requested. */
     char uid_arg[ARGUMENT_LENGTH + 2];
     memcpy(uid_arg, untrusted_arg, arg_len);
     memcpy(uid_arg + arg_len, "!", 2);
 
     /* There is only one way to make a cleartext signature, but binary
      * signatures can be armored or unarmored. */
-    const char *flag = cleartext ? "--clearsign" : qubes_gpg_get_sign_request();
+    const char *flag = cleartext ? NULL : qubes_gpg_get_sign_request();
     const char *args[] = {
         "gpg",
         "--batch",
@@ -105,11 +107,13 @@ int main(int argc, char **argv) {
         "--display-charset=UTF-8",
         "--status-fd=2",
         "--with-colons",
-        "--detach-sign",
+        /* Select detached or cleartext signatures */
+        cleartext ? "--clearsign" : "--detach-sign",
+        /* In case the user has --textmode or --no-textmode in gpg.conf */
+        cleartext ? "--textmode" : "--no-textmode",
         "--local-user",
         uid_arg,
         flag,
-        cleartext ? NULL : "--no-textmode",
         NULL,
     };
     execvp(args[0], (char *const *)args);
