@@ -7,6 +7,8 @@ $(BUILDDIR)/%.o: %.c Makefile $(BUILDDIR)/
 		-Werror=vla -Werror=array-bounds -Werror=format=2 -fstack-protector-all \
 		-Wall -Wextra -fsanitize=undefined -fsanitize-undefined-trap-on-error
 all: $(BUILDDIR)/qubes-gpg-signer
+	ln -f -- $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/qubes.GpgSign
+	ln -f -- $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/qubes.GpgClearSign
 $(BUILDDIR)/:
 	mkdir -p -m 0700 -- $(BUILDDIR)
 clean:
