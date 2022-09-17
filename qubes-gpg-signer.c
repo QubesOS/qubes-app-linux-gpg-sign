@@ -52,32 +52,48 @@ static const char *qubes_gpg_get_sign_request(void) {
     }
 }
 
+static bool validate_argv0(const char *progname, bool *cleartext, const char **flag)
+{
+    size_t len = strlen(progname);
+    size_t const prefix_len = sizeof("qubes.Gpg") - 1;
+    if (len < prefix_len + 4 ||
+        memcmp(progname, "qubes.Gpg", prefix_len) ||
+        memcmp(progname + len - 4, "Sign", 4))
+        return false;
+    len -= prefix_len + 4, progname += prefix_len;
+    if (len == 0)
+        return *cleartext = false, *flag = NULL, true;
+    if (len == 5 && !memcmp(progname, "Clear", 5))
+        return *cleartext = true, *flag = "--clearsign", true;
+    if (len == 5 && !memcmp(progname, "Armor", 5))
+        return *cleartext = false, *flag = "--armor", true;
+    if (len == 6 && !memcmp(progname, "Binary", 6))
+        return *cleartext = false, *flag = "--no-armor", true;
+    return false;
+}
+
 int main(int argc, char **argv) {
     if (argc != 2)
         errx(BAD_ARG_EXIT_STATUS, "Wrong number of arguments (expected 2, got %d)", argc);
     char *untrusted_arg = argv[1];
-    const char *prog_name = get_prog_name(argv[0]);
+    const char *flag, *progname = get_prog_name(argv[0]);
     bool cleartext;
 
-    if (!strcmp(prog_name, "qubes.GpgSign"))
-        cleartext = false;
-    else if (!strcmp(prog_name, "qubes.GpgClearSign"))
-        cleartext = true;
-    else
-        errx(BAD_ARG_EXIT_STATUS, "Invoked with unknown basename %s, cannot determine operation to perform", prog_name);
+    if (!validate_argv0(progname, &cleartext, &flag))
+        errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
 
     /* sanitize start */
     size_t const arg_len = strlen(untrusted_arg);
     if (arg_len != ARGUMENT_LENGTH)
-        errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument (expected %d, got %zu)",
-             ARGUMENT_LENGTH, arg_len);
+        errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument %s (expected %d, got %zu)",
+             untrusted_arg, ARGUMENT_LENGTH, arg_len);
     for (size_t i = 0; i < arg_len; ++i) {
         switch (untrusted_arg[i]) {
         case '0' ... '9':
         case 'A' ... 'F':
             break;
         case 'a' ... 'f':
-            untrusted_arg[i] &= 0xDF;
+            untrusted_arg[i] -= 0x20;
             break;
         default:
             /* Argument already sanitized by qrexec */
@@ -95,7 +111,8 @@ int main(int argc, char **argv) {
 
     /* There is only one way to make a cleartext signature, but binary
      * signatures can be armored or unarmored. */
-    const char *flag = cleartext ? NULL : qubes_gpg_get_sign_request();
+    if (!flag && !cleartext)
+        flag = qubes_gpg_get_sign_request();
     const char *args[] = {
         "gpg",
         "--batch",
