@@ -113,6 +113,9 @@ int main(int argc, char **argv) {
      * signatures can be armored or unarmored. */
     if (!flag && !cleartext)
         flag = qubes_gpg_get_sign_request();
+    /* Ensure that GnuPG's locale is reasonable */
+    if (putenv("LC_ALL=C.UTF-8"))
+        err(127, "putenv(\"LC_ALL=C.UTF-8\")");
     const char *args[] = {
         "gpg",
         "--batch",
