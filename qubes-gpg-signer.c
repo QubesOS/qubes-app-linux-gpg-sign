@@ -75,13 +75,24 @@ static bool validate_argv0(const char *progname, bool *cleartext, const char **f
 int main(int argc, char **argv) {
     if (argc != 2)
         errx(BAD_ARG_EXIT_STATUS, "Wrong number of arguments (expected 2, got %d)", argc);
-    char *untrusted_arg = argv[1];
-    const char *flag, *progname = get_prog_name(argv[0]);
+
+    /*
+     * Argument already somewhat sanitized by qrexec: it cannot be passed
+     * directly to GnuPG, but it *is* safe to print.
+     */
+    const char *const untrusted_arg = argv[1];
+    const char *flag, *const progname = get_prog_name(argv[0]);
     bool cleartext;
+    char uid_arg[ARGUMENT_LENGTH + 2] = { 0 };
 
     if (!validate_argv0(progname, &cleartext, &flag))
         errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
 
+    /*
+     * Sanitize the fingerprint and convert it to uppercase.  The argument is
+     * already somewhat sanitized by qrexec.  It cannot be passed directly
+     * to GnuPG, but it *is* safe to print.
+     */
     /* sanitize start */
     size_t const arg_len = strlen(untrusted_arg);
     if (arg_len != ARGUMENT_LENGTH)
@@ -91,23 +102,23 @@ int main(int argc, char **argv) {
         switch (untrusted_arg[i]) {
         case '0' ... '9':
         case 'A' ... 'F':
+            uid_arg[i] = untrusted_arg[i];
             break;
         case 'a' ... 'f':
-            untrusted_arg[i] -= 0x20;
+            uid_arg[i] = untrusted_arg[i] - 0x20;
             break;
         default:
-            /* Argument already sanitized by qrexec */
             errx(BAD_ARG_EXIT_STATUS, "Invalid byte %d at position %zu in argument %s",
                  untrusted_arg[i], i, untrusted_arg);
         }
     }
-    /* sanitize end */
 
-    /* Add a trailing ! to the key fingerprint.  This tells GnuPG to use the
-     * exact key requested. */
-    char uid_arg[ARGUMENT_LENGTH + 2];
-    memcpy(uid_arg, untrusted_arg, arg_len);
+    /*
+     * Add a trailing ! to the key fingerprint.  This tells GnuPG to use the
+     * exact key requested.
+     */
     memcpy(uid_arg + arg_len, "!", 2);
+    /* sanitize end */
 
     /* There is only one way to make a cleartext signature, but binary
      * signatures can be armored or unarmored. */
