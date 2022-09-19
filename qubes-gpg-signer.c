@@ -95,9 +95,16 @@ int main(int argc, char **argv) {
      */
     /* sanitize start */
     size_t const arg_len = strlen(untrusted_arg);
+
+    /* Check that the length is correct */
     if (arg_len != ARGUMENT_LENGTH)
         errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument %s (expected %d, got %zu)",
              untrusted_arg, ARGUMENT_LENGTH, arg_len);
+
+    /*
+     * Copy from the argument to the UID array, sanitizing and
+     * uppercasing in the process.
+     */
     for (size_t i = 0; i < arg_len; ++i) {
         switch (untrusted_arg[i]) {
         case '0' ... '9':
@@ -115,7 +122,7 @@ int main(int argc, char **argv) {
 
     /*
      * Add a trailing ! to the key fingerprint.  This tells GnuPG to use the
-     * exact key requested.
+     * exact key requested.  Also add the NUL terminator.
      */
     memcpy(uid_arg + arg_len, "!", 2);
     /* sanitize end */
