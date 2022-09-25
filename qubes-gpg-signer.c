@@ -120,8 +120,8 @@ int main(int argc, char **argv) {
             untrusted_uid[i] -= 0x20;
             break;
         default:
-            errx(BAD_ARG_EXIT_STATUS, "Invalid byte %d at position %zu in argument %s",
-                 untrusted_uid[i], i, untrusted_arg);
+            errx(BAD_ARG_EXIT_STATUS, "Invalid character %c at position %zu in argument %s",
+                 untrusted_uid[i], i + 1, untrusted_arg);
         }
     }
     const char *const uid = untrusted_uid;
