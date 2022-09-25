@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
     /* Check that the length is correct */
     if (arg_len != ARGUMENT_LENGTH)
-        errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument %s (expected %d, got %zu)",
+        errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument \"%s\" (expected %d, got %zu)",
              untrusted_arg, ARGUMENT_LENGTH, arg_len);
 
     /* Copy from the argument to the UID array */
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
             untrusted_uid[i] -= 0x20;
             break;
         default:
-            errx(BAD_ARG_EXIT_STATUS, "Invalid character %c at position %zu in argument %s",
+            errx(BAD_ARG_EXIT_STATUS, "Invalid character '%c' at position %zu in argument \"%s\"",
                  untrusted_uid[i], i + 1, untrusted_arg);
         }
     }
