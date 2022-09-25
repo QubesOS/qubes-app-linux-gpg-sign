@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
     const char *const untrusted_arg = argv[1];
     const char *flag, *const progname = get_prog_name(argv[0]);
     bool cleartext;
-    char uid_arg[ARGUMENT_LENGTH + 2] = { 0 };
+    char untrusted_uid[ARGUMENT_LENGTH + 2] = { 0 };
 
     if (!validate_argv0(progname, &cleartext, &flag))
         errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
@@ -101,30 +101,30 @@ int main(int argc, char **argv) {
         errx(BAD_ARG_EXIT_STATUS, "Invalid length of service argument %s (expected %d, got %zu)",
              untrusted_arg, ARGUMENT_LENGTH, arg_len);
 
-    /*
-     * Copy from the argument to the UID array, sanitizing and
-     * uppercasing in the process.
-     */
-    for (size_t i = 0; i < arg_len; ++i) {
-        switch (untrusted_arg[i]) {
-        case '0' ... '9':
-        case 'A' ... 'F':
-            uid_arg[i] = untrusted_arg[i];
-            break;
-        case 'a' ... 'f':
-            uid_arg[i] = untrusted_arg[i] - 0x20;
-            break;
-        default:
-            errx(BAD_ARG_EXIT_STATUS, "Invalid byte %d at position %zu in argument %s",
-                 untrusted_arg[i], i, untrusted_arg);
-        }
-    }
+    /* Copy from the argument to the UID array */
+    memcpy(untrusted_uid, untrusted_arg, arg_len);
 
     /*
      * Add a trailing ! to the key fingerprint.  This tells GnuPG to use the
      * exact key requested.  Also add the NUL terminator.
      */
-    memcpy(uid_arg + arg_len, "!", 2);
+    memcpy(untrusted_uid + arg_len, "!", 2);
+
+    /* Sanitize and uppercase the user ID */
+    for (size_t i = 0; i < arg_len; ++i) {
+        switch (untrusted_uid[i]) {
+        case '0' ... '9':
+        case 'A' ... 'F':
+            break;
+        case 'a' ... 'f':
+            untrusted_uid[i] -= 0x20;
+            break;
+        default:
+            errx(BAD_ARG_EXIT_STATUS, "Invalid byte %d at position %zu in argument %s",
+                 untrusted_uid[i], i, untrusted_arg);
+        }
+    }
+    const char *const uid = untrusted_uid;
     /* sanitize end */
 
     /* There is only one way to make a cleartext signature, but binary
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
     /* Ensure that GnuPG's locale is reasonable */
     if (putenv("LC_ALL=C.UTF-8"))
         err(127, "putenv(\"LC_ALL=C.UTF-8\")");
-    const char *args[] = {
+    const char *const args[] = {
         "gpg",
         "--batch",
         "--no-tty",
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
         /* In case the user has --textmode or --no-textmode in gpg.conf */
         cleartext ? "--textmode" : "--no-textmode",
         "--local-user",
-        uid_arg,
+        uid,
         flag,
         NULL,
     };
