@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
         "--display-charset=UTF-8",
         "--status-fd=2",
         "--with-colons",
+        "--logger-file=/dev/null",
         /* Select detached or cleartext signatures */
         cleartext ? "--clearsign" : "--detach-sign",
         /* In case the user has --textmode or --no-textmode in gpg.conf */
