@@ -52,24 +52,18 @@ static const char *qubes_gpg_get_sign_request(void) {
     }
 }
 
-static bool validate_argv0(const char *progname, bool *cleartext, const char **flag)
+static void validate_argv0(const char *progname, bool *cleartext, const char **flag)
 {
-    size_t len = strlen(progname);
-    size_t const prefix_len = sizeof("qubes.Gpg") - 1;
-    if (len < prefix_len + 4 ||
-        memcmp(progname, "qubes.Gpg", prefix_len) ||
-        memcmp(progname + len - 4, "Sign", 4))
-        return false;
-    len -= prefix_len + 4, progname += prefix_len;
-    if (len == 0)
-        return *cleartext = false, *flag = NULL, true;
-    if (len == 5 && !memcmp(progname, "Clear", 5))
-        return *cleartext = true, *flag = "--clearsign", true;
-    if (len == 5 && !memcmp(progname, "Armor", 5))
-        return *cleartext = false, *flag = "--armor", true;
-    if (len == 6 && !memcmp(progname, "Binary", 6))
-        return *cleartext = false, *flag = "--no-armor", true;
-    return false;
+    if (!strcmp(progname, "qubes.GpgSign"))
+        *cleartext = false, *flag = NULL;
+    else if (!strcmp(progname, "qubes.GpgClearSign"))
+        *cleartext = true, *flag = "--clearsign";
+    else if (!strcmp(progname, "qubes.GpgArmorSign"))
+        *cleartext = false, *flag = "--armor";
+    else if (!strcmp(progname, "qubes.GpgBinarySign"))
+        *cleartext = false, *flag = "--no-armor";
+    else
+        errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
 }
 
 int main(int argc, char **argv) {
@@ -85,8 +79,7 @@ int main(int argc, char **argv) {
     bool cleartext;
     char untrusted_uid[ARGUMENT_LENGTH + 2] = { 0 };
 
-    if (!validate_argv0(progname, &cleartext, &flag))
-        errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
+    validate_argv0(progname, &cleartext, &flag);
 
     /*
      * Sanitize the fingerprint and convert it to uppercase.  The argument is
