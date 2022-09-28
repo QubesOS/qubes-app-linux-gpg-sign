@@ -3,10 +3,28 @@ BUILDDIR ?= build
 $(BUILDDIR)/%: $(BUILDDIR)/%.o
 	$(CC) -Wl,-z,relro,-z,now,-z,noexecstack -fPIC -o $@ $^
 $(BUILDDIR)/%.o: %.c Makefile | $(BUILDDIR)/
-	$(CC) $(CFLAGS) -O2 -ggdb -MD -MP -MF $@.dep -c -o $@ $< -Wp,-D_FORTIFY_SOURCE=2 -fPIC \
-		-Werror=vla -Werror=array-bounds -Werror=format=2 -fstack-protector-all \
-		-Wall -Wextra -fsanitize=undefined -fsanitize-undefined-trap-on-error \
-		-fvisibility=hidden -Werror=empty-body -Werror=misleading-indentation
+	$(CC) $(CFLAGS) -O2 -ggdb -MD -MP -MF $@.dep -c -o $@ $< \
+		-Wp,-D_FORTIFY_SOURCE=2 \
+		-Wp,-D_GNU_SOURCE \
+		-fPIC \
+		-fstack-protector-all \
+		-fsanitize=undefined \
+		-fsanitize-undefined-trap-on-error \
+		-fvisibility=hidden \
+		-fno-delete-null-pointer-checks \
+		-fno-strict-aliasing \
+		-Wall \
+		-Wextra \
+		-Werror=vla \
+		-Werror=array-bounds \
+		-Werror=format=2 \
+		-Werror=empty-body \
+		-Werror=misleading-indentation \
+		-Werror=implicit-function-declaration \
+		-Werror=int-conversion \
+		-Werror=unused-label \
+		-Wno-gnu-case-range \
+		-Wno-declaration-after-statement
 all: $(BUILDDIR)/qubes-gpg-signer
 	for i in '' Clear Armor Binary; do ln -f -- $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/"qubes.Gpg$${i}Sign"; done
 $(BUILDDIR)/:
