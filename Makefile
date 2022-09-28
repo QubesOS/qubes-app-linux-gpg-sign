@@ -26,12 +26,12 @@ $(BUILDDIR)/%.o: %.c Makefile | $(BUILDDIR)/
 		-Wno-gnu-case-range \
 		-Wno-declaration-after-statement
 all: $(BUILDDIR)/qubes-gpg-signer
-	for i in '' Clear Armor Binary; do ln -f -- $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/"qubes.Gpg$${i}Sign"; done
+	for i in Clear Armor Binary; do ln -f -- $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/"qubes.Gpg$${i}Sign"; done
 $(BUILDDIR)/:
 	mkdir -p -m 0700 -- $(BUILDDIR)
 clean:
 	rm -f -- $(BUILDDIR)/*.o $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/*.dep
 install:
-	install -D -- $(BUILDDIR)/qubes.GpgSign ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign
-	for i in Clear Armor Binary; do ln -f -- ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign ${DESTDIR}/"etc/qubes-rpc/qubes.Gpg$${i}Sign"; done
+	install -D -- $(BUILDDIR)/qubes.GpgBinarySign ${DESTDIR}/etc/qubes-rpc/qubes.GpgBinarySign
+	for i in Clear Armor; do ln -f -- ${DESTDIR}/etc/qubes-rpc/qubes.GpgBinarySign ${DESTDIR}/"etc/qubes-rpc/qubes.Gpg$${i}Sign"; done
 -include $(BUILDDIR)/*.o.dep

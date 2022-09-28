@@ -1,69 +1,36 @@
-#define _FORTIFY_SOURCE 2
 #include <unistd.h>
 #include <err.h>
-#include <stdint.h>
-#include <stddef.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 enum {
     ARGUMENT_LENGTH = 40,
     BAD_ARG_EXIT_STATUS = 16,
 };
 
+static void validate_argv0(const char *progname, bool *cleartext, const char **flag)
+{
+    if (!strcmp(progname, "qubes.GpgArmorSign"))
+        (void)(*cleartext = false), *flag = "--armor";
+    else if (!strcmp(progname, "qubes.GpgClearSign"))
+        (void)(*cleartext = true), *flag = "--clearsign";
+    else if (!strcmp(progname, "qubes.GpgBinarySign"))
+        (void)(*cleartext = false), *flag = "--no-armor";
+    else
+        errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgBinarySign, qubes.GpgArmorSign, or qubes.GpgClearSign, not %s.\n\
+\n\
+qubes.GpgBinarySign: create binary OpenPGP signatures\n\
+qubes.GpgArmorSign: create ASCII-armored OpenPGP signatures\n\
+qubes.GpgClearSign: create cleartext OpenPGP signatures", progname);
+}
+
 static char *get_prog_name(char *str)
 {
     char *const res = strrchr(str, '/');
     return res ? res + 1 : str;
-}
-
-static const char *qubes_gpg_get_sign_request(void) {
-    /*
-     * Caller gets to choose between armored and binary signature.
-     * The output of GnuPG is trusted, and it is trivially possible
-     * to convert between them, so there are no security
-     * implications to the choice.  Therefore, encoding the choice
-     * in the service argument (which is used for access checks)
-     * would be overly constraining.
-     */
-    for (;;) {
-        char untrusted_buf[1];
-        switch (read(0, untrusted_buf, sizeof untrusted_buf)) {
-        case 0:
-            errx(BAD_ARG_EXIT_STATUS, "No signature type selection byte (premature EOF)");
-        case -1:
-            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-                continue;
-            err(BAD_ARG_EXIT_STATUS, "Failed to read signature type byte");
-        case 1:
-            switch (untrusted_buf[0]) {
-            case 'a':
-                return "--armor";
-            case 'b':
-                return "--no-armor";
-            default:
-                errx(1, "Bad signature type byte %d", untrusted_buf[0]);
-            }
-            break;
-        }
-        abort();
-    }
-}
-
-static void validate_argv0(const char *progname, bool *cleartext, const char **flag)
-{
-    if (!strcmp(progname, "qubes.GpgSign"))
-        *cleartext = false, *flag = NULL;
-    else if (!strcmp(progname, "qubes.GpgClearSign"))
-        *cleartext = true, *flag = "--clearsign";
-    else if (!strcmp(progname, "qubes.GpgArmorSign"))
-        *cleartext = false, *flag = "--armor";
-    else if (!strcmp(progname, "qubes.GpgBinarySign"))
-        *cleartext = false, *flag = "--no-armor";
-    else
-        errx(BAD_ARG_EXIT_STATUS, "Must be invoked as qubes.GpgSign, qubes.GpgArmorSign, qubes.GpgBinarySign, or qubes.GpgClearSign, not %s", progname);
 }
 
 int main(int argc, char **argv) {
@@ -120,10 +87,6 @@ int main(int argc, char **argv) {
     const char *const uid = untrusted_uid;
     /* sanitize end */
 
-    /* There is only one way to make a cleartext signature, but binary
-     * signatures can be armored or unarmored. */
-    if (!flag && !cleartext)
-        flag = qubes_gpg_get_sign_request();
     /* Ensure that GnuPG's locale is reasonable */
     if (putenv("LC_ALL=C.UTF-8"))
         err(127, "putenv(\"LC_ALL=C.UTF-8\")");
@@ -148,6 +111,7 @@ int main(int argc, char **argv) {
         flag,
         NULL,
     };
+
     execvp(args[0], (char *const *)args);
-    err(127, "execvp(%s)", args[0]);
+    err(126, "execvp(%s)", args[0]);
 }
