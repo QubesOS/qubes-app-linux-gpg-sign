@@ -1,0 +1,23 @@
+Source: qubes-gpg-sign
+Section: admin
+Priority: extra
+Maintainer: Demi Marie Obenour <demi@invisiblethingslab.com>
+Build-Depends: debhelper (>= 9~)
+Standards-Version: 3.9.5
+Homepage: https://www.qubes-os.org
+
+Package: qubes-gpg-sign
+Section: admin
+Architecture: amd64
+Depends:
+ gnupg2,
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: The Qubes service for simple GPG signing.
+ The Qubes service for delegating GnuPG signing.  You can keep keys in
+ secure (even network isolated) VM and only pass data to it for
+ signing/decryption.  Compared to qubes-gpg-split, this service focuses
+ on simplicity and minimal attack surface.  The client is required to
+ specify the exact fingerprint of the key they wish to use for signing
+ as the service argument, allowing qrexec policy to limit which qubes can
+ use which keys.

@@ -1,0 +1,5 @@
+qubes-gpg-sign (0.0.1-1) UNRELEASED; urgency=medium
+
+  * Initial release
+
+ -- Demi Marie Obenour <demi@invisblethingslab.com>  Tue, 04 Oct 2022 19:03:38 -0400

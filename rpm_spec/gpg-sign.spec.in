@@ -1,0 +1,67 @@
+# The Qubes OS Project, https://www.qubes-os.org
+#
+# Copyright (C) 2011  Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+# Copyright (C) 2022  Demi Marie Obenour <demiinvisiblethingslab.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+Name:		qubes-gpg-sign
+Version:	@VERSION@
+Release:	1%{dist}
+Summary:	The Qubes service for simple GPG signing.
+
+Group:		Qubes
+Vendor:		Invisible Things Lab
+License:	GPL
+URL:		https://www.qubes-os.org
+
+BuildRequires:	make
+BuildRequires:	gcc
+
+Requires:	gnupg2
+
+Source0: %{name}-%{version}.tar.gz
+
+%description
+The Qubes service for delegating GnuPG signing.  You can keep keys in
+secure (even network isolated) VM and only pass data to it for
+signing/decryption.  Compared to qubes-gpg-split, this service focuses
+on simplicity and minimal attack surface.  The client is required to
+specify the exact fingerprint of the key they wish to use for signing
+as the service argument, allowing qrexec policy to limit which qubes can
+use which keys.
+
+%prep
+%setup -q
+
+%build
+make clean all
+
+%install
+rm -rf -- "$RPM_BUILD_ROOT"
+make install "DESTDIR=$RPM_BUILD_ROOT"
+
+%clean
+rm -rf -- "$RPM_BUILD_ROOT"
+
+%files
+%defattr(-,root,root,-)
+/etc/qubes-rpc/qubes.GpgSign
+/etc/qubes-rpc/qubes.GpgArmorSign
+/etc/qubes-rpc/qubes.GpgClearSign
+/etc/qubes-rpc/qubes.GpgBinarySign
+
+%changelog
+@CHANGELOG@

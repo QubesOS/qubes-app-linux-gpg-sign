@@ -1,0 +1,4 @@
+etc/qubes-rpc/qubes.GpgSign
+etc/qubes-rpc/qubes.GpgClearSign
+etc/qubes-rpc/qubes.GpgArmorSign
+etc/qubes-rpc/qubes.GpgBinarySign

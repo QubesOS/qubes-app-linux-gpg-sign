@@ -1,0 +1,33 @@
+#!/bin/bash
+# Contributor: Jacob Jenner Rasmussen <jacob@jener.dk>
+# shellcheck disable=SC2034
+pkgname=qubes-gpg-sign
+read -r pkgver < version
+pkgrel=1
+pkgdesc="The Qubes service for delegating GnuPG signing.  You can keep keys in
+secure (even network isolated) VM and only pass data to it for
+signing/decryption.  Compared to qubes-gpg-split, this service focuses
+on simplicity and minimal attack surface.  The client is required to
+specify the exact fingerprint of the key they wish to use for signing
+as the service argument, allowing qrexec policy to limit which qubes can
+use which keys"
+arch=("x86_64")
+url="https://qubes-os.org/"
+license=('GPL')
+depends=('gnupg')
+makedepends=(make gcc)
+
+changelog=debian/changelog
+source=()
+md5sums=()
+
+build() {
+    make -C .. clean all
+}
+
+package() {
+    # shellcheck disable=SC2154
+    make -C .. install DESTDIR="$pkgdir"
+}
+
+# vim:set tabstop=4 shiftwidth=4 softtabstop=4 expandtab:

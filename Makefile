@@ -1,4 +1,4 @@
-BUILDDIR ?= build
+BUILDDIR ?= _build
 .PHONY: all clean install
 $(BUILDDIR)/%: $(BUILDDIR)/%.o
 	$(CC) -Wl,-z,relro,-z,now,-z,noexecstack -fPIC -o $@ $^
@@ -33,5 +33,5 @@ clean:
 	rm -f -- $(BUILDDIR)/*.o $(BUILDDIR)/qubes-gpg-signer $(BUILDDIR)/*.dep
 install:
 	install -D -- $(BUILDDIR)/qubes.GpgSign ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign
-	for i in Clear Armor Binary; do ln -f -- ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign ${DESTDIR}/"etc/qubes-rpc/qubes.Gpg$${i}Sign:; done
+	for i in Clear Armor Binary; do ln -f -- ${DESTDIR}/etc/qubes-rpc/qubes.GpgSign ${DESTDIR}/"etc/qubes-rpc/qubes.Gpg$${i}Sign"; done
 -include $(BUILDDIR)/*.o.dep
