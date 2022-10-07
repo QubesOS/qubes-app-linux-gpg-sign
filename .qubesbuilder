@@ -1,0 +1,10 @@
+vm:
+  rpm:
+    build:
+    - rpm_spec/gpg-sign.spec
+  deb:
+    build:
+    - debian
+  archlinux:
+    build:
+    - archlinux
