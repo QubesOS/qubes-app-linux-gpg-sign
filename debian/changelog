@@ -1,5 +1,6 @@
-qubes-gpg-sign (0.0.1-1) UNRELEASED; urgency=medium
+qubes-gpg-sign (1.0.0-1) unstable; urgency=medium
 
+  [ Demi Marie Obenour ]
   * Initial release
 
- -- Demi Marie Obenour <demi@invisblethingslab.com>  Tue, 04 Oct 2022 19:03:38 -0400
+ -- Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>  Tue, 09 Jan 2024 20:16:40 +0100
