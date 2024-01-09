@@ -2,8 +2,8 @@
 # Contributor: Jacob Jenner Rasmussen <jacob@jener.dk>
 # shellcheck disable=SC2034
 pkgname=qubes-gpg-sign
-read -r pkgver < version
-pkgrel=1
+pkgver=@VERSION@
+pkgrel=@REL@
 pkgdesc="The Qubes service for delegating GnuPG signing.  You can keep keys in
 secure (even network isolated) VM and only pass data to it for
 signing/decryption.  Compared to qubes-gpg-split, this service focuses
@@ -17,17 +17,20 @@ license=('GPL')
 depends=('gnupg')
 makedepends=(make gcc)
 
+_pkgnvr="${pkgname}-${pkgver}-${pkgrel}"
 changelog=debian/changelog
-source=()
-md5sums=()
+source=("${_pkgnvr}.tar.gz")
+md5sums=(SKIP)
 
 build() {
-    make -C .. clean all
+    cd "${_pkgnvr}"
+    make clean all
 }
 
 package() {
+    cd "${_pkgnvr}"
     # shellcheck disable=SC2154
-    make -C .. install DESTDIR="$pkgdir"
+    make install DESTDIR="$pkgdir"
 }
 
 # vim:set tabstop=4 shiftwidth=4 softtabstop=4 expandtab:
